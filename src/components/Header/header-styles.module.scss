@@ -22,7 +22,7 @@
       height: 5rem;
       line-height: 5rem;
       color: var(--gray-300);
-      
+
       transition: color 200ms;
 
       & + a {
@@ -39,7 +39,7 @@
       }
 
       &.active::after {
-        content: '';
+        content: "";
         height: 3px;
         border-radius: 3px 3px 0 0;
         width: 100%;
@@ -49,5 +49,9 @@
         background-color: var(--yellow-500);
       }
     }
+  }
+
+  button {
+    margin-left: auto;
   }
 }
