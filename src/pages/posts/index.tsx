@@ -1,7 +1,22 @@
-import Head from 'next/head';
-import styles from './styles.module.scss';
+import { GetStaticProps } from "next";
+import Prismic from "@prismicio/client";
+import { RichText } from "prismic-dom";
+import Head from "next/head";
+import { getPrismicClient } from "../../services/prismic";
+import styles from "./styles.module.scss";
 
-export default function Posts() {
+type Post = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  updateAt: string;
+};
+
+interface PostsProps {
+  posts: Post[];
+}
+
+export default function Posts({ posts }: PostsProps) {
   return (
     <>
       <Head>
@@ -9,32 +24,48 @@ export default function Posts() {
       </Head>
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a href="#">
-            <time>03 de setembro de 2021</time>
-            <strong>Creating a Monorepo with Lerna Yarn Workspaces</strong>
-            <p>
-              In this guide, you will learn how to create a Monorepo to manage
-              multiple packages with a shared build, test, and release process.
-            </p>
-          </a>
-          <a href="#">
-            <time>02 de setembro de 2021</time>
-            <strong>Past, Present, and Future of React State Management</strong>
-            <p>
-              Learn about the history of state management in React and what the
-              preferred solutions are today.
-            </p>
-          </a>
-          <a href="#">
-            <time>01 de setembro de 2021</time>
-            <strong>How Stripe Designs Beautiful Websites</strong>
-            <p>
-              Examining the tips and tricks used to make Stripe website design a
-              notch above the rest.
-            </p>
-          </a>
+          {posts.map((post) => (
+            <a href="#" key={post.slug}>
+              <time>{post.updateAt}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
+            </a>
+          ))}
         </div>
       </main>
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async () => {
+  const prismic = getPrismicClient();
+  const response = await prismic.query(
+    [Prismic.Predicates.at("document.type", "post")],
+    {
+      fetch: ["post.title", "post.content"],
+      pageSize: 100,
+    }
+  );
+
+  const posts = response.results.map((post) => {
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title),
+      excerpt:
+        post.data.content.find((content) => content.type === "paragraph")
+          ?.text ?? "",
+      updatedAt: new Date(post.last_publication_date).toLocaleDateString(
+        "pt-BR",
+        {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }
+      ),
+    };
+  });
+
+  return {
+    props: { posts },
+  };
+};
