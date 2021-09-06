@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import { SignInButton } from '../SignInButton/sign-in-button';
 import logoImg from '../../../public/images/logo.svg';
